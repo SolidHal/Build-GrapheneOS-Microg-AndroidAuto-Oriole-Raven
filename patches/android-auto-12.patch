@@ -1,0 +1,92 @@
+From 50f545d0fe9846369410fc20bc1ac531f5411034 Mon Sep 17 00:00:00 2001
+From: Dylanger Daly <dylanger@diagnostix.io>
+Date: Fri, 22 Oct 2021 09:35:43 +1000
+Subject: [PATCH] Allow required Android Auto permissions
+
+ - Confirm the application name matches 'com.google.android.projection.gearhead'
+ - Confirm the app is signed with Google's Android Auto Production Certificate
+ - Only allow android.permission.MODIFY_AUDIO_ROUTING", "android.permission.REAL_GET_TASKS", "android.permission.LOCAL_MAC_ADDRESS",
+   "android.permission.MANAGE_USB", "android.permission.MANAGE_USERS", "android.permission.BLUETOOTH_PRIVILEGED", "android.permission.TOGGLE_AUTOMOTIVE_PROJECTION", "android.permission.READ_PHONE_NUMBERS"
+---
+ .../android/content/pm/PackageParser.java     | 33 +++++++++++++++++++
+ .../permission/PermissionManagerService.java  | 14 ++++++++
+ 2 files changed, 47 insertions(+)
+
+diff --git a/core/java/android/content/pm/PackageParser.java b/core/java/android/content/pm/PackageParser.java
+index de6804e72ef0..10be03a99588 100644
+--- a/core/java/android/content/pm/PackageParser.java
++++ b/core/java/android/content/pm/PackageParser.java
+@@ -6573,6 +6573,39 @@ public class PackageParser {
+             return false;
+         }
+ 
++        /**
++         * Return the Cerificate's Digest
++         */
++        public @Nullable String getSha256Certificate() {
++            return getSha256CertificateInternal();
++        }
++
++        private @Nullable String getSha256CertificateInternal() {
++            String digest;
++            if (this == UNKNOWN) {
++                return null;
++            }
++            if (hasPastSigningCertificates()) {
++
++                // check all past certs, except for the last one, which automatically gets all
++                // capabilities, since it is the same as the current signature, and is checked below
++                for (int i = 0; i < pastSigningCertificates.length - 1; i++) {
++                    digest = PackageUtils.computeSha256Digest(
++                            pastSigningCertificates[i].toByteArray());
++                    return digest;
++                }
++            }
++
++            // not in previous certs signing history, just check the current signer
++            if (signatures.length == 1) {
++                digest =
++                        PackageUtils.computeSha256Digest(signatures[0].toByteArray());
++                return digest;
++            }
++            return null;
++        }
++
++
+         /** Returns true if the signatures in this and other match exactly. */
+         public boolean signaturesMatchExactly(SigningDetails other) {
+             return Signature.areExactMatch(this.signatures, other.signatures);
+diff --git a/services/core/java/com/android/server/pm/permission/PermissionManagerService.java b/services/core/java/com/android/server/pm/permission/PermissionManagerService.java
+index 60dc0a027725..85a1b79f3b1d 100644
+--- a/services/core/java/com/android/server/pm/permission/PermissionManagerService.java
++++ b/services/core/java/com/android/server/pm/permission/PermissionManagerService.java
+@@ -328,6 +328,11 @@ public class PermissionManagerService extends IPermissionManager.Stub {
+     @Nullable
+     private HotwordDetectionServiceProvider mHotwordDetectionServiceProvider;
+ 
++    // Define allowed permissions for Android Auto
++    private ArrayList<String> androidAutoPerms = new ArrayList<String>(
++    Arrays.asList("android.permission.MODIFY_AUDIO_ROUTING", "android.permission.REAL_GET_TASKS", "android.permission.LOCAL_MAC_ADDRESS", "android.permission.MANAGE_USB", "android.permission.MANAGE_USERS", "android.permission.BLUETOOTH_PRIVILEGED", "android.permission.TOGGLE_AUTOMOTIVE_PROJECTION", "android.permission.READ_PHONE_NUMBERS"));
++    private static final String GOOGLEAUTOHASH = "FDB00C43DBDE8B51CB312AA81D3B5FA17713ADB94B28F598D77F8EB89DACEEDF";
++
+     // TODO: Take a look at the methods defined in the callback.
+     // The callback was initially created to support the split between permission
+     // manager and the package manager. However, it's started to be used for other
+@@ -985,6 +990,15 @@ public class PermissionManagerService extends IPermissionManager.Stub {
+                 return PackageManager.PERMISSION_DENIED;
+             }
+ 
++            if (pkg.getPackageName() == "com.google.android.projection.gearhead") {
++             String hash = pkg.getSigningDetails().getSha256Certificate();
++             if(hash.equals(GOOGLEAUTOHASH)) {
++                 if (androidAutoPerms.contains(permissionName)) {
++                     return PackageManager.PERMISSION_GRANTED;
++                 }
++             }
++            }
++
+             if (checkSinglePermissionInternalLocked(uidState, permissionName, isInstantApp)) {
+                 return PackageManager.PERMISSION_GRANTED;
+             }
+-- 
+2.31.1

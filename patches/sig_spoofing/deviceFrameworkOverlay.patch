@@ -1,0 +1,37 @@
+From 3809417e97a6afaf070fc271adc8ebd77734066e Mon Sep 17 00:00:00 2001
+From: SolidHal <hal@halemmerich.com>
+Date: Sun, 23 Jan 2022 00:43:53 +0000
+Subject: [PATCH] Enable location overlays to get location from microg
+
+---
+ oriole/overlay/frameworks/base/core/res/res/values/config.xml | 4 ++++
+ raven/overlay/frameworks/base/core/res/res/values/config.xml  | 3 +++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/oriole/overlay/frameworks/base/core/res/res/values/config.xml b/oriole/overlay/frameworks/base/core/res/res/values/config.xml
+index 267bc29..f60d05a 100644
+--- a/oriole/overlay/frameworks/base/core/res/res/values/config.xml
++++ b/oriole/overlay/frameworks/base/core/res/res/values/config.xml
+@@ -231,4 +231,8 @@
+
+     <!-- the number of the max cached processes in the system. -->
+     <integer name="config_customizedMaxCachedProcesses">64</integer>
++
++    <!-- Force-enable the location overlays -->
++    <bool name="config_enableNetworkLocationOverlay" translatable="false">true</bool>
++    <bool name="config_enableFusedLocationOverlay" translatable="false">true</bool>
+ </resources>
+diff --git a/raven/overlay/frameworks/base/core/res/res/values/config.xml b/raven/overlay/frameworks/base/core/res/res/values/config.xml
+index ba283e6..cfb9431 100644
+--- a/raven/overlay/frameworks/base/core/res/res/values/config.xml
++++ b/raven/overlay/frameworks/base/core/res/res/values/config.xml
+@@ -208,4 +208,7 @@
+
+     <!-- the number of the max cached processes in the system. -->
+     <integer name="config_customizedMaxCachedProcesses">64</integer>
++
++    <bool name="config_enableNetworkLocationOverlay" translatable="false">true</bool>
++    <bool name="config_enableFusedLocationOverlay" translatable="false">true</bool>
+ </resources>
+--
+2.30.2

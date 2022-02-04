@@ -1,0 +1,36 @@
+From de7846184379955956021b6e7b1730b24c8f4802 Mon Sep 17 00:00:00 2001
+From: Vachounet <vachounet@live.fr>
+Date: Wed, 12 Feb 2020 12:05:50 +0100
+Subject: [PATCH] Utils: add FAKE_PACKAGE_SIGNATURE to platform permissions
+
+applies to android_packages_modules_Permission
+
+Change-Id: Ic00199f10de30c601acb9359ef292de9a150afa3
+Signed-off-by: Anirudh Gupta <anirudhgupta109@aosip.dev>
+[kdrag0n: Adapted for Android 11]
+Signed-off-by: Danny Lin <danny@kdrag0n.dev>
+---
+ .../android/permissioncontroller/permission/utils/Utils.java   | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/PermissionController/src/com/android/permissioncontroller/permission/utils/Utils.java b/PermissionController/src/com/android/permissioncontroller/permission/utils/Utils.java
+index 3df07ff43..eb3b26761 100644
+--- a/PermissionController/src/com/android/permissioncontroller/permission/utils/Utils.java
++++ b/PermissionController/src/com/android/permissioncontroller/permission/utils/Utils.java
+@@ -21,6 +21,7 @@
+ import static android.Manifest.permission_group.CALL_LOG;
+ import static android.Manifest.permission_group.CAMERA;
+ import static android.Manifest.permission_group.CONTACTS;
++import static android.Manifest.permission_group.FAKE_PACKAGE;
+ import static android.Manifest.permission_group.LOCATION;
+ import static android.Manifest.permission_group.MICROPHONE;
+ import static android.Manifest.permission_group.NEARBY_DEVICES;
+@@ -286,6 +287,8 @@
+ 
+         PLATFORM_PERMISSIONS.put(Manifest.permission.BODY_SENSORS, SENSORS);
+ 
++        PLATFORM_PERMISSIONS.put(Manifest.permission.FAKE_PACKAGE_SIGNATURE, FAKE_PACKAGE);
++
+         PLATFORM_PERMISSIONS.put(Manifest.permission.INTERNET, NETWORK);
+         PLATFORM_PERMISSIONS.put(Manifest.permission.OTHER_SENSORS, OTHER_SENSORS);
+ 
