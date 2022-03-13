@@ -1,37 +1,41 @@
-From 3809417e97a6afaf070fc271adc8ebd77734066e Mon Sep 17 00:00:00 2001
+From 930bebcd89f5cf09a6c8ec66d7f304a60805005d Mon Sep 17 00:00:00 2001
 From: SolidHal <hal@halemmerich.com>
-Date: Sun, 23 Jan 2022 00:43:53 +0000
+Date: Sun, 13 Mar 2022 01:00:01 +0000
 Subject: [PATCH] Enable location overlays to get location from microg
 
 ---
- oriole/overlay/frameworks/base/core/res/res/values/config.xml | 4 ++++
- raven/overlay/frameworks/base/core/res/res/values/config.xml  | 3 +++
- 2 files changed, 7 insertions(+)
+ .../overlay/frameworks/base/core/res/res/values/config.xml   | 5 +++++
+ raven/overlay/frameworks/base/core/res/res/values/config.xml | 5 +++++
+ 2 files changed, 10 insertions(+)
 
 diff --git a/oriole/overlay/frameworks/base/core/res/res/values/config.xml b/oriole/overlay/frameworks/base/core/res/res/values/config.xml
-index 267bc29..f60d05a 100644
+index 8b6db04..bb97990 100644
 --- a/oriole/overlay/frameworks/base/core/res/res/values/config.xml
 +++ b/oriole/overlay/frameworks/base/core/res/res/values/config.xml
-@@ -231,4 +231,8 @@
-
-     <!-- the number of the max cached processes in the system. -->
-     <integer name="config_customizedMaxCachedProcesses">64</integer>
+@@ -316,4 +316,9 @@
+          <item>com.android.bluetooth</item>
+          <item>com.shannon.imsservice</item>
+     </string-array>
 +
 +    <!-- Force-enable the location overlays -->
 +    <bool name="config_enableNetworkLocationOverlay" translatable="false">true</bool>
 +    <bool name="config_enableFusedLocationOverlay" translatable="false">true</bool>
++
  </resources>
 diff --git a/raven/overlay/frameworks/base/core/res/res/values/config.xml b/raven/overlay/frameworks/base/core/res/res/values/config.xml
-index ba283e6..cfb9431 100644
+index 0e829cf..3e412de 100644
 --- a/raven/overlay/frameworks/base/core/res/res/values/config.xml
 +++ b/raven/overlay/frameworks/base/core/res/res/values/config.xml
-@@ -208,4 +208,7 @@
-
-     <!-- the number of the max cached processes in the system. -->
-     <integer name="config_customizedMaxCachedProcesses">64</integer>
+@@ -289,4 +289,9 @@
+          <item>com.android.bluetooth</item>
+          <item>com.shannon.imsservice</item>
+     </string-array>
 +
++    <!-- Force-enable the location overlays -->
 +    <bool name="config_enableNetworkLocationOverlay" translatable="false">true</bool>
 +    <bool name="config_enableFusedLocationOverlay" translatable="false">true</bool>
++
  </resources>
---
+-- 
 2.30.2
+
