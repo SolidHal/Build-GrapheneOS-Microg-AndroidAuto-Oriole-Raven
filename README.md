@@ -24,6 +24,64 @@ https://releases.grapheneos.org/raven-vendor-2022011423.tar.zst
 
 they just need to be placed at vendor/google_devices/{oriole,raven}
 
+### Extract vendors repo
+
+Example graphene os release version: `S2B3.220205.007.A1.2022031103`
+So need factory image `S2B3.220205.007.A1`
+
+These can be found on the us, or chinese sites (depending on where google chooses to upload them)
+
+https://developer.android.google.cn/about/versions/12/download-ota?hl=zh-cn
+https://developers.google.com/android/images
+
+And need the OTA image for `S2B3.220205.007.A1` 
+
+like the factory images, some of these are on the US site, some on the chinese site
+https://developer.android.google.cn/about/versions/12/download-ota?hl=zh-cn
+
+
+Requirements:
+- yarn
+- simg2img
+- recent node version (anything less than 13 is too old)
+- python3 protobuf
+
+
+#### build adevtool
+```
+cd vendor/adevtool/ && yarn install && cd ../..
+```
+
+#### extract the vendors
+place the zip in `vendor/adevtool/dl/`
+
+then run
+```
+sudo vendor/adevtool/bin/run generate-all vendor/adevtool/config/DEVICE.yml -c vendor/state/DEVICE.json -s vendor/adevtool/dl/DEVICE-BUILD_ID-*.zip
+```
+
+##### NOTE: aapt2
+if you don't have an existing build, `generate-all` will complain about missing aapt2
+to build it
+
+example:
+```
+sudo vendor/adevtool/bin/run generate-all vendor/adevtool/config/oriole.yml -s vendor/adevtool/dl/oriole-s2b3.220205.007.a1-factory-6549410e.zip -c vendor/state/oriole-state-output-file.json
+```
+
+next:
+
+```
+vendor/android-prepare-vendor/execute-all.sh -d oriole -b s2b3.220205.007.a1 -o vendor/android-prepare-vendor -i vendor/adevtool/dl/oriole-s2b3.220205.007.a1-factory-6549410e.zip --ota ~/android/oriole-ota-s2b3.220205.007.a1-cc557a1a.zip
+```
+
+
+finally:
+
+```
+cp -r vendor/android-prepare-vendor/oriole/s2b3.220205.007.a1/vendor/google_devices/oriole/radio/* vendor/google_devices/oriole/firmware/
+```
+
 
 ## Add Custom packages (app and priv-app)
 
@@ -84,6 +142,10 @@ m otatools-package
 script/release.sh oriole
 ```
 
+# Installing
+
+decompress the factory zip in `out/release-oriole-$BUILD_NUMBER`
+use `./flash-all.sh`
 
 # Setup
 - open microg, give it all the permissions
@@ -97,6 +159,13 @@ script/release.sh oriole
 
 TODO:
 - why is fdroid priv extension not working?
+
+# Updating
+
+grab the update zip in `out/release-oriole-$BUILD_NUMBER`
+
+follow:
+https://grapheneos.org/usage#updates-sideloading
 
 
 
