@@ -1,0 +1,47 @@
+From ab4e21c2731e3e01a3aca8bebd15711eaf301fbc Mon Sep 17 00:00:00 2001
+From: Dylanger Daly <dylangerdaly@protonmail.com>
+Date: Fri, 21 Oct 2022 14:59:32 +0100
+Subject: [PATCH] Allow required Android Auto permissions
+
+ - Confirm the application name matches 'com.google.android.projection.gearhead'
+ - Confirm the app is signed with Google's Android Auto Production Certificate
+ - Only allow android.permission.MODIFY_AUDIO_ROUTING", "android.permission.REAL_GET_TASKS", "android.permission.LOCAL_MAC_ADDRESS",
+   "android.permission.MANAGE_USB", "android.permission.MANAGE_USERS", "android.permission.BLUETOOTH_PRIVILEGED", "android.permission.TOGGLE_AUTOMOTIVE_PROJECTION", "android.permission.READ_PHONE_NUMBERS"
+---
+ .../permission/PermissionManagerServiceImpl.java   | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/services/core/java/com/android/server/pm/permission/PermissionManagerServiceImpl.java b/services/core/java/com/android/server/pm/permission/PermissionManagerServiceImpl.java
+index da832f59..5ad2f5fb 100644
+--- a/services/core/java/com/android/server/pm/permission/PermissionManagerServiceImpl.java
++++ b/services/core/java/com/android/server/pm/permission/PermissionManagerServiceImpl.java
+@@ -176,6 +176,12 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
+             + "app kill for notification test";
+ 
+ 
++    /** Define allowed permissions for Android Auto */
++    private ArrayList<String> androidAutoPerms = new ArrayList<String>(
++    Arrays.asList("android.permission.MODIFY_AUDIO_ROUTING", "android.permission.REAL_GET_TASKS", "android.permission.LOCAL_MAC_ADDRESS", "android.permission.MANAGE_USB", "android.permission.MANAGE_USERS", "android.permission.BLUETOOTH_PRIVILEGED", "android.permission.TOGGLE_AUTOMOTIVE_PROJECTION", "android.permission.READ_PHONE_NUMBERS"));
++    Set<String> GOOGLEAUTOHASH = new ArraySet<>(Arrays.asList("FDB00C43DBDE8B51CB312AA81D3B5FA17713ADB94B28F598D77F8EB89DACEEDF"));
++
++
+     private static final long BACKUP_TIMEOUT_MILLIS = SECONDS.toMillis(60);
+ 
+     /** Cap the size of permission trees that 3rd party apps can define; in characters of text */
+@@ -962,6 +968,14 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
+                 return PackageManager.PERMISSION_DENIED;
+             }
+ 
++            if (pkg.getPackageName() == "com.google.android.projection.gearhead") {
++             if(pkg.getSigningDetails().hasAncestorOrSelfWithDigest(GOOGLEAUTOHASH)) {
++                 if (androidAutoPerms.contains(permissionName)) {
++                     return PackageManager.PERMISSION_GRANTED;
++                 }
++             }
++            }
++
+             if (checkSinglePermissionInternalLocked(uidState, permissionName, isInstantApp)) {
+                 return PackageManager.PERMISSION_GRANTED;
+             }
+-- 
+2.37.3

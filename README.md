@@ -7,14 +7,14 @@ mostly just follow https://grapheneos.org/build
 some parts are pulled out here for brevity, and my own reference
 
 ```
-sudo apt install signify-openbsd
+sudo apt install signify-openbsd yarn
 alias signify=signify-openbsd
 ```
 
 ```
-mkdir grapheneos-12
-cd grapheneos-12
-repo init -u https://github.com/GrapheneOS/platform_manifest.git -b 12
+mkdir grapheneos-13
+cd grapheneos-13
+repo init -u https://github.com/GrapheneOS/platform_manifest.git -b 13
 repo sync -j14
 ```
 
@@ -26,62 +26,56 @@ they just need to be placed at vendor/google_devices/{oriole,raven}
 
 ### Extract vendors repo
 
-Example graphene os release version: `S2B3.220205.007.A1.2022031103`
-So need factory image `S2B3.220205.007.A1`
-
-These can be found on the us, or chinese sites (depending on where google chooses to upload them)
-
-https://developer.android.google.cn/about/versions/12/download-ota?hl=zh-cn
-https://developers.google.com/android/images
-
-And need the OTA image for `S2B3.220205.007.A1` 
-
-like the factory images, some of these are on the US site, some on the chinese site
-https://developer.android.google.cn/about/versions/12/download-ota?hl=zh-cn
-
-
 Requirements:
 - yarn
 - simg2img
 - recent node version (anything less than 13 is too old)
 - python3 protobuf
 
+Example graphene os release version: `TQ2A.230405.003.E1.2023041100`
+So need factory image `TQ2A.230405.003.E1`
 
-#### build adevtool
+build tools:
 ```
-cd vendor/adevtool/ && yarn install && cd ../..
-```
-
-#### extract the vendors
-place the zip in `vendor/adevtool/dl/`
-
-then run
-```
-sudo vendor/adevtool/bin/run generate-all vendor/adevtool/config/DEVICE.yml -c vendor/state/DEVICE.json -s vendor/adevtool/dl/DEVICE-BUILD_ID-*.zip
+yarn install --cwd vendor/adevtool/
+source script/envsetup.sh
+m aapt2
 ```
 
-##### NOTE: aapt2
-if you don't have an existing build, `generate-all` will complain about missing aapt2
-to build it
-
-example:
+extract vendors:
 ```
-sudo vendor/adevtool/bin/run generate-all vendor/adevtool/config/oriole.yml -s vendor/adevtool/dl/oriole-s2b3.220205.007.a1-factory-6549410e.zip -c vendor/state/oriole-state-output-file.json
-```
-
-next:
-
-```
-vendor/android-prepare-vendor/execute-all.sh -d oriole -b s2b3.220205.007.a1 -o vendor/android-prepare-vendor -i vendor/adevtool/dl/oriole-s2b3.220205.007.a1-factory-6549410e.zip --ota ~/android/oriole-ota-s2b3.220205.007.a1-cc557a1a.zip
+DEVICE=oriole
+BUILD_ID=TQ2A.230405.003.E1
+vendor/adevtool/bin/run download vendor/adevtool/dl/ -d $DEVICE -b $BUILD_ID -t factory ota
+sudo vendor/adevtool/bin/run generate-all vendor/adevtool/config/$DEVICE.yml -c vendor/state/$DEVICE.json -s vendor/adevtool/dl/$DEVICE-${BUILD_ID,,}-*.zip
+sudo chown -R $(logname):$(logname) vendor/{google_devices,adevtool}
+vendor/adevtool/bin/run ota-firmware vendor/adevtool/config/$DEVICE.yml -f vendor/adevtool/dl/$DEVICE-ota-${BUILD_ID,,}-*.zip
 ```
 
+## Add FDroidPrivilegedExtension
+https://gitlab.com/fdroid/privileged-extension
 
-finally:
-
+add
 ```
-cp -r vendor/android-prepare-vendor/oriole/s2b3.220205.007.a1/vendor/google_devices/oriole/radio/* vendor/google_devices/oriole/firmware/
-```
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
 
+  <remote name="fdroid" fetch="https://gitlab.com/fdroid/" />
+  <project path="packages/apps/F-DroidPrivilegedExtension"
+           name="privileged-extension.git" remote="fdroid"
+           revision="refs/tags/0.2.13" />
+
+</manifest>
+```
+to `<checkout>/.repo/local_manifests/manifests.xml`
+create the `local_manifests` dir if necessary
+
+then do a `repo sync -j 12`
+
+Finally, add the following to `build/target/product/base_system.mk`
+```
+PRODUCT_PACKAGES += F-DroidPrivilegedExtension
+```
 
 ## Add Custom packages (app and priv-app)
 
@@ -97,32 +91,25 @@ git clone git@github.com:SolidHal/android_prebuilts_solidhal.git .
 
 Add the following to `build/target/product/base_system.mk`
 ```
-PRODUCT_PACKAGES += GmsCore GsfProxy FakeStore FDroid FDroidPrivilegedExtension auroraservices
+PRODUCT_PACKAGES += auroraservices
 ```
 
 to add your own packages, make a repo like:
 https://github.com/SolidHal/android_prebuilts_solidhal
 https://github.com/SolidHal/android-auto-stub
 
-and modify the instructions above 
+and modify the instructions above
 
 
-## Apply Patches for microG and Android Auto
+## Apply Patches for Android Auto
 
-
-from your graphene os checkout, 
+from your graphene os checkout,
 
 ```
 cd frameworks/base
-git am ~/<this-repo>/patches/sig_spoofing/android_frameworks_base-S.patch
-git am ~/<this-repo>/patches/android-auto-12.patch
-
-cd device/google/raviole
-git am ~/<this-repo>/patches/sig_spoofing/deviceFrameworkOverlay.patch
-
-cd packages/modules/Permission
-git am ~/<this-repo>/patches/sig_spoofing/permissionControllerPatch.patch
+git am ~/<this-repo>/patches/android-auto-13.patch
 ```
+
 
 # keys
 
@@ -130,14 +117,16 @@ following the grapheneos docs create keys in:
 $HOME/android/keys/$DEVICE
 
 then link to the build system
-ln -s $HOME/android/keys/ $HOME/android/grapheneos-12/keys
+ln -s $HOME/android/keys/ $(pwd)/keys
 
 
 # BUILD
 ```
 source script/envsetup.sh
 choosecombo release oriole user
+
 m vendorbootimage target-files-package
+
 m otatools-package
 script/release.sh oriole
 ```
